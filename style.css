@@ -4,6 +4,7 @@ body {
   height: 100%;
   background: #12001f;
   overflow: hidden;
+  overscroll-behavior: none;
 }
 
 body {
@@ -92,6 +93,83 @@ body {
 .speed button:focus-visible {
   outline: 2px solid #ffd479;
   outline-offset: 2px;
+}
+
+/* Notification test panel: only appears when the link ends with ?test */
+.ntfy-test {
+  position: fixed;
+  left: max(12px, env(safe-area-inset-left));
+  bottom: max(12px, env(safe-area-inset-bottom));
+  z-index: 3;
+  box-sizing: border-box;
+  width: min(340px, calc(100vw - 24px));
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: rgba(20, 4, 28, 0.85);
+  border: 1px solid rgba(255, 179, 199, 0.35);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  color: #ffe3ec;
+  font: 13px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  -webkit-user-select: text;
+  user-select: text;
+}
+
+.ntfy-test .nt-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 4px;
+}
+
+.ntfy-test .nt-head b {
+  color: #ffffff;
+  font-size: 14px;
+}
+
+.ntfy-test .nt-x {
+  border: 0;
+  padding: 0 4px;
+  background: transparent;
+  color: #ffb3c7;
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.ntfy-test code {
+  color: #ffd479;
+  font: 12px/1.4 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  word-break: break-all;
+}
+
+.ntfy-test .nt-send {
+  display: block;
+  width: 100%;
+  height: 40px;
+  margin: 10px 0 8px;
+  border: 0;
+  border-radius: 999px;
+  background: #ff4d79;
+  color: #ffffff;
+  font: 600 14px/1 system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.ntfy-test .nt-status.ok {
+  color: #7dffb0;
+}
+
+.ntfy-test .nt-status.bad {
+  color: #ffb3b3;
+}
+
+.ntfy-test .nt-link {
+  display: inline-block;
+  margin-top: 6px;
+  color: #c9b6ff;
 }
 
 .nojs {

@@ -15,6 +15,9 @@
   const PLAY_MUSIC = CFG.PLAY_MUSIC !== false;
   const BANGLA_FONT = CFG.BANGLA_FONT || '';
   const CUSTOM_SONG = CFG.CUSTOM_SONG || '';
+  const NOTIFY_TOPIC = String(CFG.NOTIFY_TOPIC || '').trim();
+  const NOTIFY_SERVER = String(CFG.NOTIFY_SERVER || 'https://ntfy.sh').trim().replace(/\/+$/, '');
+  const NOTIFY_TITLE = CFG.NOTIFY_TITLE || `${HER} হ্যাঁ বলেছে! 💍`;
   const SPEED_SCENES = Array.isArray(CFG.SPEED_SCENES) ? CFG.SPEED_SCENES : ['song', 'poem'];
   const SPEED_OPTIONS = Array.isArray(CFG.SPEED_OPTIONS) && CFG.SPEED_OPTIONS.length ? CFG.SPEED_OPTIONS : [1, 1.5, 2];
 
@@ -358,6 +361,89 @@
           window.addEventListener('keydown', retry, true);
         });
       }
+    }
+  }
+
+  // ---------------------------------------------------------------------
+  //  "She said yes" notification to your phone (ntfy app). Silent: nothing
+  //  changes on her screen, and any network problem is ignored.
+  //  Open the site with ?test at the end to get a small test panel that shows
+  //  whether ntfy.sh really received the notification.
+  // ---------------------------------------------------------------------
+  const TEST_MODE = (() => { try { return new URLSearchParams(location.search).has('test'); } catch (e) { return false; } })();
+  const BN_DIGITS = '০১২৩৪৫৬৭৮৯';
+  const BN_MONTHS = ['জানুয়ারি', 'ফেব্রুয়ারি', 'মার্চ', 'এপ্রিল', 'মে', 'জুন', 'জুলাই', 'আগস্ট',
+    'সেপ্টেম্বর', 'অক্টোবর', 'নভেম্বর', 'ডিসেম্বর'];
+  const bnNum = (v) => String(v).replace(/[0-9]/g, (d) => BN_DIGITS[+d]);
+
+  function bnTime(d) {
+    const h = d.getHours();
+    const part = h >= 4 && h < 6 ? 'ভোর' : h >= 6 && h < 12 ? 'সকাল' : h >= 12 && h < 15 ? 'দুপুর'
+      : h >= 15 && h < 18 ? 'বিকাল' : h >= 18 && h < 20 ? 'সন্ধ্যা' : 'রাত';
+    const mm = String(d.getMinutes()).padStart(2, '0');
+    return `${part} ${bnNum(h % 12 || 12)}:${bnNum(mm)}, ${bnNum(d.getDate())} ${BN_MONTHS[d.getMonth()]}`;
+  }
+
+  function yesText(tries) {
+    return {
+      title: (TEST_MODE ? 'পরীক্ষা: ' : '') + NOTIFY_TITLE,
+      message: `সময়: ${bnTime(new Date())}\n` + (tries > 0
+        ? `'না' বাটন ধরার চেষ্টা করেছে ${bnNum(tries)} বার।`
+        : `একবারও 'না' বাটন ধরার চেষ্টা করেনি।`),
+    };
+  }
+
+  // Sends one notification and resolves to { ok, detail }. Never throws.
+  // 1st try: ntfy's simple link form  https://ntfy.sh/<topic>/publish?title=..&message=..
+  // if ntfy answers with an error: the JSON form (POST to https://ntfy.sh/)
+  // if the network call itself fails: an image beacon of the simple link, as a last resort.
+  function sendNtfy(title, message) {
+    if (!NOTIFY_TOPIC) return Promise.resolve({ ok: false, detail: 'NOTIFY_TOPIC is empty in config.js' });
+    const query = new URLSearchParams({ title, message, tags: 'tada', priority: '4' }).toString();
+    const link = `${NOTIFY_SERVER}/${encodeURIComponent(NOTIFY_TOPIC)}/publish?${query}`;
+    const beacon = () => { try { new Image().src = link + '&nc=' + Date.now(); } catch (e) { /* ignore */ } };
+    if (!window.fetch) { beacon(); return Promise.resolve({ ok: true, detail: 'sent (this browser cannot show the reply)' }); }
+    const json = JSON.stringify({ topic: NOTIFY_TOPIC, title, message, tags: ['tada'], priority: 4 });
+    try {
+      return fetch(link, { cache: 'no-store', keepalive: true })
+        .then((r) => (r.ok ? r : fetch(NOTIFY_SERVER + '/', { method: 'POST', body: json, keepalive: true })))
+        .then((r) => r.text().then((t) => ({ ok: r.ok, detail: `HTTP ${r.status} ${t.trim().slice(0, 150)}` })))
+        .catch((e) => { beacon(); return { ok: false, detail: (e && e.message) || String(e) }; });
+    } catch (e) {
+      beacon();
+      return Promise.resolve({ ok: false, detail: String(e) });
+    }
+  }
+
+  // Small panel shown only with ?test, so you can check the notification without playing the whole show.
+  class NtfyPanel {
+    constructor() {
+      const box = document.createElement('div');
+      box.className = 'ntfy-test';
+      box.innerHTML = '<div class="nt-head"><b>Notification test</b><button type="button" class="nt-x" aria-label="Close">×</button></div>' +
+        '<div class="nt-topic">Topic: <code></code></div>' +
+        '<button type="button" class="nt-send">Send test notification</button>' +
+        '<div class="nt-status" role="status">Tap the button, or play the show and tap Yes.</div>' +
+        '<a class="nt-link" target="_blank" rel="noopener">What ntfy.sh received in the last hour</a>';
+      box.querySelector('code').textContent = NOTIFY_TOPIC || '(empty)';
+      box.querySelector('.nt-link').href = `${NOTIFY_SERVER}/${encodeURIComponent(NOTIFY_TOPIC || 'x')}/json?poll=1&since=1h`;
+      box.querySelector('.nt-x').addEventListener('click', () => box.remove());
+      box.querySelector('.nt-send').addEventListener('click', () => {
+        this.track(sendNtfy('পরীক্ষা: নোটিফিকেশন ঠিকমতো কাজ করছে', `সময়: ${bnTime(new Date())}`));
+      });
+      document.body.appendChild(box);
+      this.box = box;
+      this.status = box.querySelector('.nt-status');
+    }
+    track(promise) {
+      this.status.className = 'nt-status';
+      this.status.textContent = 'Sending...';
+      promise.then((r) => {
+        this.status.className = 'nt-status ' + (r.ok ? 'ok' : 'bad');
+        this.status.textContent = r.ok
+          ? '✓ ntfy.sh received it. If your phone stays silent, the problem is in the ntfy app: topic name, notification permission, Do Not Disturb or battery saver.'
+          : '✗ Not delivered (' + r.detail + '). This browser or network is blocking ntfy.sh. Try Chrome, or switch between Wi-Fi and mobile data.';
+      });
     }
   }
 
@@ -1217,6 +1303,8 @@
       this.paused = false;
       this.lastTs = null;
       this.view = { s: 1, ox: 0, oy: 0 };
+      this.dprCap = 2;
+      this.wantDpr = 0;
       this.measure();
       this.setStage();
       this.bg = new Background(this, '#12001f', '#3a0030');
@@ -1225,6 +1313,7 @@
         this.scenePoem, this.sceneHeart, this.sceneLetter, this.sceneQuestion, this.sceneCelebrate];
       this.scenePos = -1;
       if (HER) document.title = HER;
+      if (TEST_MODE) this.ntfyPanel = new NtfyPanel();
       this.setupSpeedUI();
       this.bindInput();
       this.frame = this.frame.bind(this);
@@ -1236,7 +1325,7 @@
       this.vw = Math.max(1, window.innerWidth);
       this.vh = Math.max(1, window.innerHeight);
       this.vu = this.vw < this.vh ? Math.min(this.vh * 0.88, this.vw * 1.5) : this.vh;
-      this.dpr = Math.min(window.devicePixelRatio || 1, 2);
+      this.dpr = Math.min(window.devicePixelRatio || 1, this.dprCap);
       const c = this.canvas;
       c.width = Math.round(this.vw * this.dpr);
       c.height = Math.round(this.vh * this.dpr);
@@ -1269,13 +1358,36 @@
 
     frame(ts) {
       const real = ts / 1000;
-      let dt = this.lastTs === null ? 0 : real - this.lastTs;
+      const gap = this.lastTs === null ? 0 : real - this.lastTs;
       this.lastTs = real;
-      if (dt > 0.1) dt = 0.1;
-      if (dt < 0) dt = 0;
+      const dt = gap > 0.1 ? 0.1 : gap < 0 ? 0 : gap;
+      if (this.wantDpr) { this.dprCap = this.wantDpr; this.wantDpr = 0; this.measure(); }
+      const t0 = performance.now();
       if (!this.paused) this.advance(dt);
       this.render();
+      this.watchSpeed(t0, gap);
       requestAnimationFrame(this.frame);
+    }
+
+    // Safety net for slow phones: if frames drop because drawing is too heavy for the phone,
+    // draw with fewer pixels (sharpness 2x, then 1.5x, then 1x). Fast phones never trigger it.
+    watchSpeed(t0, gap) {
+      if (this.paused || this.dpr <= 1 || document.hidden || !(gap > 0) || gap > 0.25) return;
+      if (!this.probe) {
+        if (typeof MessageChannel === 'undefined') return;
+        this.probe = new MessageChannel();
+        this.samples = [];
+        this.probe.port1.onmessage = (e) => {
+          // time from the start of the frame until the browser finished drawing it
+          this.samples.push([e.data.gap * 1000, performance.now() - e.data.t0]);
+          if (this.samples.length < 45) return;
+          const median = (i) => this.samples.map((s) => s[i]).sort((a, b) => a - b)[this.samples.length >> 1];
+          const interval = median(0), work = median(1);
+          this.samples = [];
+          if (interval > 21 && work > 12 && this.dpr > 1) this.wantDpr = this.dpr > 1.5 ? 1.5 : 1;
+        };
+      }
+      this.probe.port2.postMessage({ t0, gap });
     }
 
     advance(dt) {
@@ -1514,6 +1626,7 @@
       });
       window.addEventListener('keydown', (e) => {
         if (e.key === ' ' || e.key === 'Enter') {
+          if (e.target && e.target.closest && e.target.closest('button, a')) return; // let buttons work normally
           if (this.state === 'start') { e.preventDefault(); this.begin(); }
         } else if (e.key === 'ArrowRight') {
           this.skip();
@@ -2218,6 +2331,9 @@
       if (this.state !== 'question') return;
       this.state = 'yes';
       this.yesPos = this.yesC.slice();
+      const note = yesText(this.teaseI || 0);
+      const sent = sendNtfy(note.title, note.message);
+      if (this.ntfyPanel) this.ntfyPanel.track(sent);
       this.music.play('joy');
       this.finish(0, 0.6);
     }

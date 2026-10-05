@@ -16,6 +16,13 @@ window.PROPOSAL_CONFIG = {
   BANGLA_FONT: "",      // e.g. "Kalpurush" or "SolaimanLipi". Empty = choose automatically
   CUSTOM_SONG: "",      // e.g. "song.mp3" (put the file next to index.html). Empty = built-in music box
 
+  // When she taps "Yes", your phone gets a push notification through the free ntfy app.
+  // Nothing changes on her screen. In the ntfy app, subscribe to exactly this topic name.
+  // Empty "" = no notification. Test without fooling yourself: open your link with ?test at the end.
+  NOTIFY_TOPIC: "fahim-yes-3nrq6pd9zn5y",
+  NOTIFY_SERVER: "https://ntfy.sh",
+  NOTIFY_TITLE: `${HER} হ্যাঁ বলেছে! 💍`,
+
   // Scenes where the viewer gets the 1x / 1.5x / 2x speed buttons.
   // Possible names: "intro", "names", "book", "song", "poem", "heart", "letter"
   SPEED_SCENES: ["song", "poem"],

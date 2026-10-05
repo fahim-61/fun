@@ -57,6 +57,36 @@ git push -u origin main
 
 Open `config.js` on GitHub, click the pencil icon, edit, then **Commit changes**. Vercel redeploys by itself in about 20 seconds. Refresh the link.
 
+## Get a notification when she says Yes
+
+When she taps **Yes**, your phone gets a push notification through the free ntfy app:
+"সুচি হ্যাঁ বলেছে! 💍", the time, and how many times she tried to catch the No button.
+Nothing changes on her screen.
+
+1. Install **ntfy** on your phone (Google Play or App Store) and allow notifications.
+2. In the app tap **+**, type the topic `fahim-yes-3nrq6pd9zn5y` (exactly as `NOTIFY_TOPIC` in `config.js`), keep the server `ntfy.sh`, tap **Subscribe**.
+3. Test: open your link with `?test` at the end, for example `https://suchi-surprise.vercel.app/?test`. On a PC click to start, press the Right arrow key until the question appears, click Yes. Your phone shows "পরীক্ষা: সুচি হ্যাঁ বলেছে! 💍" within a few seconds.
+4. Send her the normal link, without `?test`.
+
+**If the notification does not arrive:**
+
+1. Test the phone app alone: open `https://ntfy.sh/fahim-yes-3nrq6pd9zn5y/publish?message=hello` in any browser. Your phone should show "hello". If it does not, fix the app: exact topic name, notifications allowed for ntfy, Do Not Disturb off, battery usage "Unrestricted" (Android), and "Instant delivery" turned on in the subscription.
+2. Open your site with `?test` at the end. A "Notification test" panel appears at the bottom. If it does not appear, the new files are not live yet.
+3. Tap **Send test notification**. The panel tells you whether ntfy.sh received it, or which error happened.
+
+The topic name is visible to anyone who reads the page's code, which is why it is random. To change it, edit `NOTIFY_TOPIC` and subscribe to the new name in the app. To switch the notification off, set `NOTIFY_TOPIC: ""`.
+
+## Playing it on a phone
+
+- Open the link in **Chrome** (Android) or **Safari** (iPhone), not inside Messenger or Facebook. Their built-in browser cannot keep the screen awake or go full screen.
+- Turn on **Do Not Disturb**, so calls and notifications do not pop up over the show.
+- Turn off **Battery Saver / Low Power Mode**. They can cut the frame rate in half.
+- **Lock the rotation** to portrait. Tilting the phone sideways replays the current scene in the landscape layout.
+- Turn the **media volume** up.
+- Once the start screen is showing, it no longer needs internet.
+- iPhone: Safari always keeps its address bar. For true full screen, tap Share, then **Add to Home Screen**, and open it from the new icon.
+- On slower phones the show lowers its sharpness a little by itself to stay smooth.
+
 ## Good to know
 
 - Speed buttons appear only in the song and poem scenes. To also get them in the book chapters, add `"book"` to `SPEED_SCENES` in `config.js`.
