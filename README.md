@@ -60,12 +60,12 @@ Open `config.js` on GitHub, click the pencil icon, edit, then **Commit changes**
 ## Get a notification when she says Yes
 
 When she taps **Yes**, your phone gets a push notification through the free ntfy app:
-"সুচি হ্যাঁ বলেছে! 💍", the time, and how many times she tried to catch the No button.
+"হ্যাঁ ফাহিম, আমিও তোমাকে ভালোবাসি। ❤️🥰" with the rest of the message under it, then the time and how many times she tried to catch the No button. Change the words with `NOTIFY_TITLE` in `config.js` (first line = title).
 Nothing changes on her screen.
 
 1. Install **ntfy** on your phone (Google Play or App Store) and allow notifications.
 2. In the app tap **+**, type the topic `fahim-yes-3nrq6pd9zn5y` (exactly as `NOTIFY_TOPIC` in `config.js`), keep the server `ntfy.sh`, tap **Subscribe**.
-3. Test: open your link with `?test` at the end, for example `https://suchi-surprise.vercel.app/?test`. On a PC click to start, press the Right arrow key until the question appears, click Yes. Your phone shows "পরীক্ষা: সুচি হ্যাঁ বলেছে! 💍" within a few seconds.
+3. Test: open your link with `?test` at the end, for example `https://suchi-surprise.vercel.app/?test`. On a PC click to start, press the Right arrow key until the question appears, click Yes. Your phone shows "পরীক্ষা: হ্যাঁ ফাহিম, আমিও তোমাকে ভালোবাসি। ❤️🥰" within a few seconds.
 4. Send her the normal link, without `?test`.
 
 **If the notification does not arrive:**

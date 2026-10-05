@@ -384,12 +384,16 @@
     return `${part} ${bnNum(h % 12 || 12)}:${bnNum(mm)}, ${bnNum(d.getDate())} ${BN_MONTHS[d.getMonth()]}`;
   }
 
+  // NOTIFY_TITLE may have several lines: the first is the bold title, the rest go into the text below it.
   function yesText(tries) {
+    const lines = String(NOTIFY_TITLE).split('\n').map((s) => s.trim()).filter(Boolean);
+    const extra = lines.slice(1).join('\n');
+    const info = `সময়: ${bnTime(new Date())}\n` + (tries > 0
+      ? `'না' বাটন ধরার চেষ্টা করেছে ${bnNum(tries)} বার।`
+      : `একবারও 'না' বাটন ধরার চেষ্টা করেনি।`);
     return {
-      title: (TEST_MODE ? 'পরীক্ষা: ' : '') + NOTIFY_TITLE,
-      message: `সময়: ${bnTime(new Date())}\n` + (tries > 0
-        ? `'না' বাটন ধরার চেষ্টা করেছে ${bnNum(tries)} বার।`
-        : `একবারও 'না' বাটন ধরার চেষ্টা করেনি।`),
+      title: (TEST_MODE ? 'পরীক্ষা: ' : '') + (lines[0] || ''),
+      message: extra ? extra + '\n\n' + info : info,
     };
   }
 
@@ -399,11 +403,11 @@
   // if the network call itself fails: an image beacon of the simple link, as a last resort.
   function sendNtfy(title, message) {
     if (!NOTIFY_TOPIC) return Promise.resolve({ ok: false, detail: 'NOTIFY_TOPIC is empty in config.js' });
-    const query = new URLSearchParams({ title, message, tags: 'tada', priority: '4' }).toString();
+    const query = new URLSearchParams({ title, message, priority: '4' }).toString();
     const link = `${NOTIFY_SERVER}/${encodeURIComponent(NOTIFY_TOPIC)}/publish?${query}`;
     const beacon = () => { try { new Image().src = link + '&nc=' + Date.now(); } catch (e) { /* ignore */ } };
     if (!window.fetch) { beacon(); return Promise.resolve({ ok: true, detail: 'sent (this browser cannot show the reply)' }); }
-    const json = JSON.stringify({ topic: NOTIFY_TOPIC, title, message, tags: ['tada'], priority: 4 });
+    const json = JSON.stringify({ topic: NOTIFY_TOPIC, title, message, priority: 4 });
     try {
       return fetch(link, { cache: 'no-store', keepalive: true })
         .then((r) => (r.ok ? r : fetch(NOTIFY_SERVER + '/', { method: 'POST', body: json, keepalive: true })))
