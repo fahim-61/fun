@@ -21,7 +21,11 @@ window.PROPOSAL_CONFIG = {
   // Empty "" = no notification. Test without fooling yourself: open your link with ?test at the end.
   NOTIFY_TOPIC: "fahim-yes-3nrq6pd9zn5y",
   NOTIFY_SERVER: "https://ntfy.sh",
-  NOTIFY_TITLE: `${HER} হ্যাঁ বলেছে! 💍`,
+  NOTIFY_MESSAGE: `হ্যাঁ ফাহিম, আমিও তোমাকে ভালোবাসি। ❤️🥰
+  আমি তোমার পরবর্তী প্রজন্মের অংশ হতে চাই। 👩‍❤️‍👨💍
+  তোমার হাত ধরে বুড়ো হতে চাই। 🫶🏻
+  প্রতিটা ভোর দুজন একসাথে শুরু করতে চাই। 🌅❤️
+  সুখে-দুঃখে সবসময় তোমার সাথে থাকতে চাই, তোমার জীবনসঙ্গী হয়ে। 🥹❤️`,
 
   // Scenes where the viewer gets the 1x / 1.5x / 2x speed buttons.
   // Possible names: "intro", "names", "book", "song", "poem", "heart", "letter"
